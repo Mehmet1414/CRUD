@@ -1,15 +1,21 @@
 import { useState } from "react";
-import {toast, ToastContainer} from "react-toastify"
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Todo from "./Components/Todo";
+import "./index.css";
+import Modal from "./Components/Modal";
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [todoText, setTodoText] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editTodo, setEditTodo] = useState({});
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if(!todoText){
-      toast.warn('Formu Doldurun!', {
+
+    if (!todoText) {
+      toast.warn("Lütfen Formu Doldurun!", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -17,9 +23,9 @@ function App() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: "dark",
-        });
-      return
+        theme: "light",
+      });
+      return;
     }
 
     const newTodo = {
@@ -49,10 +55,51 @@ function App() {
     setTodos(newTodos);
   };
 
+  const handleSaveEdit = () => {
+
+    if (!editTodo.title) {
+      toast.warn("Lütfen Formu Doldurun!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+      return;
+    }
+
+    const index = todos.findIndex((i)=> i.id===editTodo.id)
+    
+    const cloneTodos = [...todos]
+
+    cloneTodos.splice(index,1,editTodo)
+    setTodos(cloneTodos)
+
+    setShowModal(false)
+
+    if (!todoText) {
+      toast.success("Görev Güncellendi!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+      return;
+    }
+  };
+
+
   return (
     <div>
-      <h1 className="">CRUD</h1>
-      <div className="container border p-3">
+      <h1 className="text-center mt-5">GÖREV LiSTESi</h1>
+      <div className="container border p-3 rounded">
         <form className="d-flex gap-3">
           <input
             className="form-control p-3"
@@ -70,42 +117,27 @@ function App() {
         <div className="d-flex flex-column gap-2  mt-5 ">
           {todos.length === 0 && "Görüntülenecek öge yok..."}
           {todos.map((todo) => (
-            <div
-              className=" d-flex justify-content-between p-3 border shadow-sm rounded-3"
+            <Todo
               key={todo.id}
-            >
-              <div>
-                <h5
-                  style={{
-                    opacity: todo.isDone ? "0.5" : "1",
-                  }}
-                >
-                  {todo.title}
-                </h5>
-                <small>Eklenme Tarihi: {todo.date}</small>
-              </div>
-              <div className="">
-                <button className="btn btn-outline-primary">Düzenle</button>
-                <button
-                  className="btn btn-outline-danger m-2"
-                  onClick={() => handleDelete(todo)}
-                >
-                  Sil
-                </button>
-                <button
-                  className="btn btn-outline-success"
-                  onClick={() => handleDone(todo)}
-                >
-                  {!todo.isDone ? "Tamamla" : "Tamam"}
-                </button>
-                
-              </div>
-            </div>
+              handleDelete={handleDelete}
+              todo={todo}
+              handleDone={handleDone}
+              setShowModal={setShowModal}
+              setEditTodo={setEditTodo}
+            />
           ))}
         </div>
-
       </div>
       <ToastContainer />
+
+      {showModal && (
+        <Modal
+          editTodo={editTodo}
+          setEditTodo={setEditTodo}
+          setShowModal={setShowModal}
+          handleSaveEdit={handleSaveEdit}
+        />
+      )}
     </div>
   );
 }
